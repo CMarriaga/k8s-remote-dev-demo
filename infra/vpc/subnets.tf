@@ -15,6 +15,8 @@ resource "aws_subnet" "public" {
       "kubernetes.io/cluster/${local.cluster_name}" = "shared",
     }
   )
+
+  depends_on = [aws_internet_gateway.this]
 }
 
 resource "aws_subnet" "private" {

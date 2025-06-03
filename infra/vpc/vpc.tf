@@ -6,7 +6,7 @@ resource "aws_vpc" "this" {
   tags = merge(
     var.custom_tags,
     {
-      Name       = format("%s", var.common_name),
+      Name       = format("%s-vpc", var.common_name),
       identifier = local.identifier,
     }
   )
