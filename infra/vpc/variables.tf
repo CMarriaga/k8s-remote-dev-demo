@@ -22,13 +22,6 @@ variable "cluster_name" {
   nullable    = false
 }
 
-variable "custom_tags" {
-  type        = map(string)
-  description = "Custom set of tags to be applied to all resources"
-  default     = {}
-  nullable    = false
-}
-
 variable "cidr_block" {
   type        = string
   description = "CIDR block that will be used for the whole VPC"
@@ -37,8 +30,9 @@ variable "cidr_block" {
 
 variable "public_subnets" {
   type = list(object({
-    cidr = string
-    az   = string
+    cidr       = string
+    az         = string
+    eks_subnet = optional(bool, false)
   }))
   description = "Definition for public subnets created for the VPC"
   nullable    = false
@@ -46,9 +40,17 @@ variable "public_subnets" {
 
 variable "private_subnets" {
   type = list(object({
-    cidr = string
-    az   = string
+    cidr       = string
+    az         = string
+    eks_subnet = optional(bool, false)
   }))
   description = "Definition for private subnets created for the VPC"
+  nullable    = false
+}
+
+variable "custom_tags" {
+  type        = map(string)
+  description = "Custom set of tags to be applied to all resources"
+  default     = {}
   nullable    = false
 }

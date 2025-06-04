@@ -8,11 +8,13 @@ resource "aws_subnet" "public" {
 
   tags = merge(
     var.custom_tags,
-    {
-      Name                                          = format("%s-public-%s", var.common_name, each.value.az_location),
-      identifier                                    = local.identifier,
+    each.value.eks_subnet ? {
       "kubernetes.io/role/elb"                      = "1",
       "kubernetes.io/cluster/${local.cluster_name}" = "shared",
+    } : {},
+    {
+      Name       = format("%s-public-%s", var.common_name, each.value.az_location),
+      identifier = local.identifier,
     }
   )
 
@@ -28,11 +30,13 @@ resource "aws_subnet" "private" {
 
   tags = merge(
     var.custom_tags,
-    {
-      Name                                          = format("%s-private-%s", var.common_name, each.value.az_location),
-      identifier                                    = local.identifier,
+    each.value.eks_subnet ? {
       "kubernetes.io/role/internal-elb"             = "1",
       "kubernetes.io/cluster/${local.cluster_name}" = "shared",
+    } : {},
+    {
+      Name       = format("%s-private-%s", var.common_name, each.value.az_location),
+      identifier = local.identifier,
     }
   )
 }

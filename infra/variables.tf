@@ -24,8 +24,9 @@ variable "cidr_block" {
 
 variable "public_subnets" {
   type = list(object({
-    cidr = string
-    az   = string
+    cidr       = string
+    az         = string
+    eks_subnet = optional(bool, false)
   }))
   description = "Definition for public subnets created for the VPC"
   nullable    = false
@@ -33,8 +34,9 @@ variable "public_subnets" {
 
 variable "private_subnets" {
   type = list(object({
-    cidr = string
-    az   = string
+    cidr       = string
+    az         = string
+    eks_subnet = optional(bool, false)
   }))
   description = "Definition for private subnets created for the VPC"
   nullable    = false

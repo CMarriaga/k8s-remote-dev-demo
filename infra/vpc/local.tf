@@ -6,12 +6,14 @@ locals {
     cidr        = v.cidr
     az          = v.az
     az_location = substr(v.az, length(v.az) - 1, 1)
+    eks_subnet  = v.eks_subnet
     }
   }
   public_subnets = { for k, v in var.public_subnets : v.cidr => {
     cidr        = v.cidr
     az          = v.az
     az_location = substr(v.az, length(v.az) - 1, 1)
+    eks_subnet  = v.eks_subnet
     }
   }
   public_subnet_ids  = [for subnet in aws_subnet.public : subnet.id]
