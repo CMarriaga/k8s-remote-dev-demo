@@ -10,12 +10,6 @@ variable "common_name" {
   nullable    = false
 }
 
-variable "environment" {
-  type        = string
-  description = "Environment where the resources will be deployed"
-  nullable    = false
-}
-
 variable "cluster_name" {
   type        = string
   description = "Name of the cluster to assign correct tags"
