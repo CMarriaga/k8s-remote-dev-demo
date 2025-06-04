@@ -18,7 +18,7 @@ resource "aws_vpc_security_group_ingress_rule" "this" {
 
   cidr_ipv4   = var.vpc_cidr_block
   from_port   = 0
-  to_port     = 0
+  to_port     = 65535
   ip_protocol = "tcp"
 }
 

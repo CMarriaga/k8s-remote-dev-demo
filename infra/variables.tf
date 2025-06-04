@@ -41,3 +41,15 @@ variable "private_subnets" {
   description = "Definition for private subnets created for the VPC"
   nullable    = false
 }
+
+variable "app_namespace" {
+  type        = string
+  description = "Namespace where the main apps will be deployed"
+  nullable    = false
+}
+
+variable "app_service_account_name" {
+  type        = string
+  description = "Name of the service account that will be used by the app"
+  nullable    = false
+}
