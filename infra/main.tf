@@ -25,30 +25,52 @@ module "data" {
 }
 
 module "eks" {
-  source          = "terraform-aws-modules/eks/aws"
-  cluster_name    = var.common_name
-  cluster_version = "1.29"
+  source = "terraform-aws-modules/eks/aws"
 
-  subnet_ids                     = module.vpc.eks_private_subnet_ids
-  vpc_id                         = module.vpc.vpc_id
-  enable_irsa                    = true
-  cluster_endpoint_public_access = true
+  cluster_name                             = var.common_name
+  cluster_version                          = "1.30"
+  enable_irsa                              = true
+  cluster_endpoint_public_access           = true
+  enable_cluster_creator_admin_permissions = true
+
+  cluster_addons = {
+    vpc-cni = {
+      before_compute = true
+      most-recent    = true
+      configuration_values = jsonencode({
+        env = {
+          ENABLE_POD_ENI                    = "true"
+          ENABLE_PREFIX_DELEGATION          = "true"
+          POD_SECURITY_GROUP_ENFORCING_MODE = "standard"
+        }
+        nodeAgent = {
+          enablePolicyEventLogs = "true"
+        }
+        enableNetworkPolicy = "true"
+      })
+    }
+  }
+
+  subnet_ids = module.vpc.eks_private_subnet_ids
+  vpc_id     = module.vpc.vpc_id
+
+  #create_cluster_security_group = false
+  #create_node_security_group    = false
 
   eks_managed_node_groups = {
     default = {
       desired_capacity = 2
-      min_capacity     = 1
+      min_capacity     = 2
       max_capacity     = 3
-
-      instance_types = ["t3.small"]
-      subnet_ids     = module.vpc.eks_private_subnet_ids
+      instance_types   = ["t3.medium"]
+      update_config = {
+        max_unavailable_percentage = 50
+      }
     }
   }
 
-  enable_cluster_creator_admin_permissions = true
-
   tags = {
-    Name       = var.common_name
+    Name       = format("%s-cluster", var.common_name)
     identifier = local.identifier
     stack      = "eks"
   }
@@ -65,4 +87,36 @@ module "irsa_role" {
   oidc_fully_qualified_subjects = ["system:serviceaccount:${var.app_namespace}:${var.app_service_account_name}"]
 
   depends_on = [module.eks]
+}
+
+module "metrics-server" {
+  source = "./metrics_server"
+
+  providers = {
+    helm       = helm
+    kubernetes = kubernetes
+  }
+
+  depends_on = [module.eks]
+}
+
+module "istio" {
+  source = "./istio"
+
+  providers = {
+    helm       = helm
+    kubernetes = kubernetes
+  }
+
+  istio_namespace           = var.istio_namespace
+  istio_version             = var.istio_version
+  install_ingress_gateway   = var.install_ingress_gateway
+  kubeconfig_path           = var.kubeconfig_path
+  node_security_group_id    = module.eks.node_security_group_id
+  cluster_security_group_id = module.eks.cluster_security_group_id
+
+  depends_on = [
+    module.eks,
+    module.metrics-server
+  ]
 }

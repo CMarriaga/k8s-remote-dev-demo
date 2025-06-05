@@ -53,3 +53,24 @@ variable "app_service_account_name" {
   description = "Name of the service account that will be used by the app"
   nullable    = false
 }
+
+variable "kubeconfig_path" {
+  type    = string
+  default = "~/.kube/config"
+}
+
+variable "istio_namespace" {
+  type    = string
+  default = "istio-system"
+}
+
+variable "istio_version" {
+  type    = string
+  default = "1.22.0"
+}
+
+variable "install_ingress_gateway" {
+  type    = bool
+  default = true
+}
+
