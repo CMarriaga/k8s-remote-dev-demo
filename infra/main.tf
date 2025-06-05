@@ -59,9 +59,9 @@ module "eks" {
 
   eks_managed_node_groups = {
     default = {
-      desired_capacity = 2
-      min_capacity     = 2
-      max_capacity     = 3
+      desired_capacity = 3
+      min_capacity     = 3
+      max_capacity     = 6
       instance_types   = ["t3.medium"]
       update_config = {
         max_unavailable_percentage = 50
@@ -88,6 +88,24 @@ module "irsa_role" {
 
   depends_on = [module.eks]
 }
+
+# module "irsa_loki" {
+#   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+#   version = "~> 5.0"
+
+#   role_name = "irsa-loki"
+
+#   oidc_providers = {
+#     main = {
+#       provider_arn               = module.eks.oidc_provider_arn
+#       namespace_service_accounts = ["observability:loki"]
+#     }
+#   }
+
+#   role_policy_arns = {
+#     s3_access = aws_iam_policy.loki_s3.arn
+#   }
+# }
 
 module "operator" {
   source = "./operator"

@@ -1,0 +1,43 @@
+loki:
+  # Skip schema validation for testing
+  useTestSchema: true
+
+  # Disable persistence (in-memory mode)
+  persistence:
+    enabled: false
+
+  # Valid TSDB config (no unsupported fields)
+  config: |
+    auth_enabled: false
+    common:
+      storage:
+        filesystem:
+          directory: /var/loki/chunks
+    schema_config:
+      configs:
+        - from: "2024-01-01"
+          store: tsdb
+          object_store: filesystem
+          schema: v12
+          index:
+            prefix: loki_index_
+            period: 24h
+    storage_config:
+      tsdb:
+        dir: /var/loki/tsdb-index  # TSDB index location
+      filesystem:
+        directory: /var/loki/chunks  # Chunk storage
+
+  # Disable bundled components
+  grafana:
+    enabled: false
+  promtail:
+    enabled: false
+
+  # Resource limits
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      memory: 1Gi

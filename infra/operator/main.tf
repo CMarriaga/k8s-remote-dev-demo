@@ -31,3 +31,27 @@ module "kiali" {
 
   depends_on = [module.istio]
 }
+
+# module "loki" {
+#   source = "./loki"
+
+#   namespace = "observability"
+
+#   depends_on = [module.grafana]
+# }
+
+module "promtail" {
+  source = "./promtail"
+
+  namespace = "observability"
+
+  depends_on = [module.grafana]
+}
+
+module "jaeger" {
+  source = "./jaeger"
+
+  namespace = "observability"
+
+  depends_on = [module.grafana]
+}

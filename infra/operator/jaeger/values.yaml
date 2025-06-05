@@ -1,0 +1,59 @@
+storage:
+  type: memory
+
+provisionDataStore:
+  cassandra: false
+  elasticsearch: false
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+collector:
+  enabled: true
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+query:
+  enabled: true
+  resources:
+    limits:
+      cpu: 300m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+agent:
+  enabled: true
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+ingester:
+  enabled: false  # Not needed for memory storage
+
+hotrod:
+  enabled: false  # Optional example app, disable to save memory
+
+kafka:
+  enabled: false
+
+elasticsearch:
+  enabled: false
+
+cassandra:
+  enabled: false
