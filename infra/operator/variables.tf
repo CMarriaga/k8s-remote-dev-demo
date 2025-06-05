@@ -13,11 +13,6 @@ variable "install_ingress_gateway" {
   default = true
 }
 
-variable "kubeconfig_path" {
-  type    = string
-  default = "~/.kube/config"
-}
-
 variable "node_security_group_id" {
   type     = string
   nullable = false

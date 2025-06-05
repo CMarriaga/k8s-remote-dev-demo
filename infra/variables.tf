@@ -54,11 +54,6 @@ variable "app_service_account_name" {
   nullable    = false
 }
 
-variable "kubeconfig_path" {
-  type    = string
-  default = "~/.kube/config"
-}
-
 variable "istio_namespace" {
   type    = string
   default = "istio-system"

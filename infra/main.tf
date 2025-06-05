@@ -89,19 +89,8 @@ module "irsa_role" {
   depends_on = [module.eks]
 }
 
-module "metrics-server" {
-  source = "./metrics_server"
-
-  providers = {
-    helm       = helm
-    kubernetes = kubernetes
-  }
-
-  depends_on = [module.eks]
-}
-
-module "istio" {
-  source = "./istio"
+module "operator" {
+  source = "./operator"
 
   providers = {
     helm       = helm
@@ -111,12 +100,8 @@ module "istio" {
   istio_namespace           = var.istio_namespace
   istio_version             = var.istio_version
   install_ingress_gateway   = var.install_ingress_gateway
-  kubeconfig_path           = var.kubeconfig_path
   node_security_group_id    = module.eks.node_security_group_id
   cluster_security_group_id = module.eks.cluster_security_group_id
 
-  depends_on = [
-    module.eks,
-    module.metrics-server
-  ]
+  depends_on = [module.eks]
 }
