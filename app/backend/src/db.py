@@ -1,38 +1,28 @@
 import asyncpg
-from src.utils import log_error
+from src.utils import log_message
 
-db = None
 
-async def init_db():
-    global db
-    try:
-      db = await asyncpg.connect(
-          user="postgres",
-          password="postgres", # Your password
-          database="demo",
-          host="postgres-service",  # service name in Kubernetes
-          port=5432,
-      )
-    except Exception as e:
-      log_error(e, "init_db")
+db_pool = None  # Global reference
 
-async def get_users():
-    global db
-    try:
-        if db is None:
-            raise Exception("Database not initialized")
-        return await db.fetch("SELECT id, name, email, city FROM users")
-    except Exception as e:
-        log_error(e, "get_users")
-        return []
-  
-async def check_db_ready():
-    global db
-    try:
-        if db is None:
-            return False
-        await db.execute("SELECT 1")
-        return True
-    except Exception as e:
-        log_error(e, "check_db_ready")
-        return False
+async def init_db_pool(dsn: str):
+  global db_pool
+  db_pool = await asyncpg.create_pool(dsn)
+  return db_pool
+
+async def close_db_pool():
+  global db_pool
+  if db_pool:
+    await db_pool.close()
+
+async def get_db():
+  async with db_pool.acquire() as connection:
+    yield connection
+    
+async def check_db_ready(pool: asyncpg.Pool):
+  async with pool.acquire() as conn:
+    await conn.execute("SELECT 1")
+
+async def fetch_all_users(pool: asyncpg.Pool):
+  async with pool.acquire() as conn:
+    rows = await conn.fetch("SELECT * FROM users")
+    return [dict(row) for row in rows]
