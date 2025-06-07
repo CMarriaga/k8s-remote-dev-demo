@@ -3,9 +3,9 @@ title = ""
 
 async function fetchBaseAPI() {
   if (API_BASE == null) {
-    const response = await fetch('/static/config.json');
+    const response = await fetch('/config.json');
     const config = await response.json();
-    API_BASE = config.API;
+    API_BASE = config.API_URL;
   }
 }
 
@@ -62,6 +62,7 @@ async function triggerDebug() {
   }
 }
 
-fetchBaseAPI()
-refreshTitle()
-fetchUsers();
+fetchBaseAPI().then(() => {
+  refreshTitle()
+  fetchUsers();
+})

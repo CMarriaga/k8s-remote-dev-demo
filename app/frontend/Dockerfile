@@ -1,12 +1,11 @@
-# Use a minimal static file server
 FROM nginx:alpine
 
-# Copy static HTML and assets
 COPY index.html /usr/share/nginx/html/
 COPY static/ /usr/share/nginx/html/static/
 
-# Expose port
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 80
 
-# Default command
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/entrypoint.sh"]

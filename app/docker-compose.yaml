@@ -30,16 +30,16 @@ services:
 
   frontend:
     build:
-      context: ./frontend  # adjust this path if needed
+      context: ./frontend # adjust this path if needed
     image: k8s-local-remote-demo-frontend:latest
     container_name: k8s-local-remote-demo-frontend
+    environment:
+      API_URL: http://localhost:8000
     ports:
       - "8080:80"
     depends_on:
       - db
       #- backend
-    volumes:
-      - ./frontend/static/config.json:/usr/share/nginx/html/static/config.json:ro
 
 volumes:
   postgres_data:
