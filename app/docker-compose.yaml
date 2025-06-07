@@ -17,16 +17,19 @@ services:
 
   # backend:
   #   build:
-  #     context: ./backend  # adjust this path if needed
+  #     context: ./backend # adjust this path if needed
   #   image: k8s-local-remote-demo-backend:latest
   #   container_name: k8s-local-remote-demo-backend
   #   environment:
   #     DB_URL: postgresql://demo:demo@db:5432/demo
   #     VERSION: docker-compose
+  #     SQS_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/730335456202/k8s-local-remote-demo-queue
   #   ports:
   #     - "8000:8000"
   #   depends_on:
   #     - db
+  #   volumes:
+  #     - ~/.aws/credentials:/root/.aws/credentials
 
   frontend:
     build:
@@ -39,7 +42,7 @@ services:
       - "8080:80"
     depends_on:
       - db
-      #- backend
+      # - backend
 
 volumes:
   postgres_data:

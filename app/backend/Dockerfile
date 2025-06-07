@@ -1,38 +1,38 @@
-# Use slim Python base
-FROM python:3.11-slim
+# ---------- Build Stage ----------
+FROM python:3.11-slim as builder
 
-# Set env vars
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
-
-# Set workdir
 WORKDIR /app
 
-# Install system dependencies
+# Install build tools for native deps like asyncpg and uvloop
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
- && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
-# Install Python deps
+# Upgrade pip and install dependencies into a temp dir
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir --target=/python_deps -r requirements.txt
 
-# Copy application code
-COPY ./src/ ./src/
+# Copy app code
+COPY ./src /app/src
 
-# Default envs
+# ---------- Final Stage ----------
+FROM gcr.io/distroless/python3-debian12
+
+WORKDIR /app
+
+# Copy installed packages and app code from builder
+COPY --from=builder /python_deps /app/python_deps
+COPY --from=builder /app/src /app/src
+
+# Set environment variables
+ENV PYTHONPATH="/app/python_deps"
 ENV MODULE_NAME=src.main
 ENV HOST=0.0.0.0
 ENV PORT=8000
 ENV WORKERS=1
 ENV ENVIRONMENT=production
 
-# Entry point
-CMD ["/bin/sh", "-c", "\
-    if [ \"$ENVIRONMENT\" = 'development' ]; then \
-        uvicorn $MODULE_NAME:app --host $HOST --port $PORT --reload; \
-    else \
-        gunicorn -k uvicorn.workers.UvicornWorker $MODULE_NAME:app --workers $WORKERS --bind $HOST:$PORT; \
-    fi"]
+# Command must be an array (shell not available in distroless)
+ENTRYPOINT ["python3", "-m", "gunicorn", "-k", "uvicorn.workers.UvicornWorker", "src.main:app", "--workers", "1", "--bind", "0.0.0.0:8000"]
