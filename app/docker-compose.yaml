@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15
+    container_name: k8s-local-remote-demo-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: demo
+      POSTGRES_DB: demo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/dat
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # backend:
+  #   build:
+  #     context: ./backend  # adjust this path if needed
+  #   image: k8s-local-remote-demo-backend:latest
+  #   container_name: k8s-local-remote-demo-backend
+  #   environment:
+  #     DB_URL: postgresql://demo:demo@db:5432/demo
+  #     VERSION: docker-compose
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     - db
+
+  frontend:
+    build:
+      context: ./frontend  # adjust this path if needed
+    image: k8s-local-remote-demo-frontend:latest
+    container_name: k8s-local-remote-demo-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+      #- backend
+    volumes:
+      - ./frontend/static/config.json:/usr/share/nginx/html/static/config.json:ro
+
+volumes:
+  postgres_data:

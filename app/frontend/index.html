@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Demo Frontend</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body>
+  <h1 id="title">Welcome to the Demo App</h1>
+
+  <button onclick="refreshTitle()">Refresh Title</button>
+  <button onclick="sendSQS()">Send message to SQS</button>
+  <button onclick="triggerDebug()">Trigger Debug</button>
+
+  <h2>Users Table</h2>
+  <table id="users-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script src="/static/script.js"></script>
+</body>
+
+</html>
