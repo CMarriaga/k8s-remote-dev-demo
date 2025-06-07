@@ -1,6 +1,4 @@
 import asyncpg
-from src.utils import log_message
-
 
 db_pool = None  # Global reference
 
