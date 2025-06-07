@@ -26,7 +26,9 @@ WORKDIR /app
 COPY --from=builder /python_deps /app/python_deps
 COPY --from=builder /app/src /app/src
 
-# Set environment variables
+# Copy entrypoint
+COPY /entrypoint.py /app/entrypoint.py
+
 ENV PYTHONPATH="/app/python_deps"
 ENV MODULE_NAME=src.main
 ENV HOST=0.0.0.0
@@ -34,5 +36,5 @@ ENV PORT=8000
 ENV WORKERS=1
 ENV ENVIRONMENT=production
 
-# Command must be an array (shell not available in distroless)
-ENTRYPOINT ["python3", "-m", "gunicorn", "-k", "uvicorn.workers.UvicornWorker", "src.main:app", "--workers", "1", "--bind", "0.0.0.0:8000"]
+# Use Python script as entrypoint (no shell required)
+ENTRYPOINT ["python3", "/app/entrypoint.py"]
