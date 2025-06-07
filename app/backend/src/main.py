@@ -1,13 +1,17 @@
 import os
+from dotenv import load_dotenv
 from fastapi import FastAPI, Response, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 
 from src.db import check_db_ready, init_db_pool, close_db_pool, fetch_all_users
 from src.sqs import send_message_to_sqs
 from src.utils import configure_logging, log_message
 
+load_dotenv()
+
+POD_NAME = os.getenv("POD_NAME")
+VERSION = os.getenv("VERSION")
 DB_URL = os.getenv("DB_URL") #"postgresql://demo_user:demo_pass@db/demo"
 db_pool = None
 
@@ -16,11 +20,10 @@ configure_logging()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
   global db_pool
-  #db_pool = await init_db_pool(dsn=DB_URL)
+  db_pool = await init_db_pool(dsn=DB_URL)
   log_message("Database pool created")
-  
   yield
-  #await close_db_pool()
+  await close_db_pool()
   log_message("Database pool closed")
 
 app = FastAPI(lifespan=lifespan)
@@ -60,10 +63,28 @@ async def ready(response: Response):
       "success": False
     }
 
+@app.get("/")
+async def running(response: Response):
+  return {
+    "success": True,
+    "data": {
+      "message": "Running"
+    }
+  }
+    
+@app.get("/title")
+async def get_title(response: Response):
+  return {
+    "success": True,
+    "data": {
+      "message": f"This is running {VERSION} on pod {POD_NAME}"
+    }
+  }
+
 @app.get("/users")
 async def list_users(response: Response):
   try:
-    users = await fetch_all_users()
+    users = await fetch_all_users(db_pool)
     return {
       "success": True,
       "data": users

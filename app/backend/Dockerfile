@@ -20,13 +20,13 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY src/ ./src/
+COPY ./src/ ./src/
 
 # Default envs
 ENV MODULE_NAME=src.main
 ENV HOST=0.0.0.0
 ENV PORT=8000
-ENV WORKERS=4
+ENV WORKERS=1
 ENV ENVIRONMENT=production
 
 # Entry point
