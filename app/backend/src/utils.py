@@ -4,6 +4,20 @@ import sys
 from fastapi import Request
 from datetime import datetime, timezone
 
+"""
+TODO:
+Add all headers form istio
+TRACING_HEADERS = [
+    "x-request-id",
+    "x-b3-traceid",
+    "x-b3-spanid",
+    "x-b3-parentspanid",
+    "x-b3-sampled",
+    "x-b3-flags",
+    "x-ot-span-context",
+]
+"""
+  
 def extract_trace_id(request: Request) -> str:
     return request.headers.get("x-b3-traceid", None)
 
