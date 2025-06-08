@@ -1,13 +1,14 @@
 import os
 import asyncio
+import inspect
 from dotenv import load_dotenv
-from fastapi import FastAPI, Response, status
+from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from src.db import check_db_ready, init_db_pool, close_db_pool, fetch_all_users
 from src.sqs import send_message_to_sqs, poll_sqs_messages
-from src.utils import configure_logging, log_message
+from src.utils import configure_logging, log_message, extract_trace_id
 
 load_dotenv()
 
@@ -21,13 +22,14 @@ configure_logging()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
   global db_pool
+  ctx = inspect.currentframe().f_code.co_name
   db_pool = await init_db_pool(dsn=DB_URL)
-  log_message("Database pool created")
+  log_message(ctx=ctx, msg="Database pool created")
   sqs_task = asyncio.create_task(poll_sqs_messages())
   yield
   sqs_task.cancel()
   await close_db_pool()
-  log_message("Database pool closed")
+  log_message(ctx=ctx, msg="Database pool closed")
 
 app = FastAPI(lifespan=lifespan)
 
@@ -40,7 +42,10 @@ app.add_middleware(
 )
 
 @app.get("/healthz")
-def health():
+def health(request: Request):
+  ctx = inspect.currentframe().f_code.co_name
+  trace_id = extract_trace_id(request)
+  log_message(ctx=ctx, msg="ok", trace_id=trace_id)
   return {
     "success": True,
     "data": {
@@ -49,9 +54,12 @@ def health():
   }
 
 @app.get("/readyz")
-async def ready(response: Response):
+async def ready(request: Request, response: Response):
+  ctx = inspect.currentframe().f_code.co_name
+  trace_id = extract_trace_id(request)
   try:
     await check_db_ready(db_pool)
+    log_message(ctx=ctx, msg="ok", trace_id=trace_id)
     return {
       "success": True,
       "data": {
@@ -59,7 +67,7 @@ async def ready(response: Response):
       }
     }
   except Exception as e:
-    log_message("readyz", e)
+    log_message(ctx=ctx, exc=e, trace_id=trace_id)
     response.status_code=status.HTTP_503_SERVICE_UNAVAILABLE
     return {
       "error": "Readiness check failed",
@@ -67,7 +75,10 @@ async def ready(response: Response):
     }
 
 @app.get("/")
-async def running(response: Response):
+async def running(request: Request, response: Response):
+  ctx = inspect.currentframe().f_code.co_name
+  trace_id = extract_trace_id(request)
+  log_message(ctx=ctx, msg="ok", trace_id=trace_id)
   return {
     "success": True,
     "data": {
@@ -76,7 +87,10 @@ async def running(response: Response):
   }
     
 @app.get("/title")
-async def get_title(response: Response):
+async def get_title(request: Request, response: Response):
+  ctx = inspect.currentframe().f_code.co_name
+  trace_id = extract_trace_id(request)
+  log_message(ctx=ctx, msg="ok", trace_id=trace_id)
   return {
     "success": True,
     "data": {
@@ -85,15 +99,18 @@ async def get_title(response: Response):
   }
 
 @app.get("/users")
-async def list_users(response: Response):
+async def list_users(request: Request, response: Response):
+  ctx = inspect.currentframe().f_code.co_name
+  trace_id = extract_trace_id(request)
   try:
     users = await fetch_all_users(db_pool)
+    log_message(ctx=ctx, msg="ok", trace_id=trace_id)
     return {
       "success": True,
       "data": users
     }
   except Exception as e:
-    log_message("list_users", e)
+    log_message(ctx=ctx, exc=e, trace_id=trace_id)
     response.status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
     return {
       "success": False,
@@ -101,9 +118,12 @@ async def list_users(response: Response):
     }
 
 @app.post("/send-sqs")
-async def send_sqs(response: Response):
+async def send_sqs(request: Request, response: Response):
+  ctx = inspect.currentframe().f_code.co_name
+  trace_id = extract_trace_id(request)
   try:
-    send_message_to_sqs("This is a test message from backend")
+    send_message_to_sqs(f"[trace_id={trace_id}]: This is a test message from backend")
+    log_message(ctx=ctx, msg="ok", trace_id=trace_id)
     return {
       "success": True,
       "data": {
@@ -111,7 +131,7 @@ async def send_sqs(response: Response):
       }
     }
   except Exception as e:
-    log_message("send_sqs", e)
+    log_message(ctx=ctx, exc=e, trace_id=trace_id)
     response.status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
     return {
       "error": "Failed to send message",
@@ -119,16 +139,19 @@ async def send_sqs(response: Response):
     }
 
 @app.get("/debug")
-async def debug_endpoint(response: Response):
+async def debug_endpoint(request: Request, response: Response):
+  ctx = inspect.currentframe().f_code.co_name
+  trace_id = extract_trace_id(request)
   try:
+    log_message(ctx=ctx, msg="ok", trace_id=trace_id)
     return {
       "success": True,
       "data": {
         "message": "Debug endpoint called"
-       }
+      }
     }
   except Exception as e:
-    log_message("debug_endpoint", e)
+    log_message(ctx=ctx, exc=e, trace_id=trace_id)
     response.status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
     return {
       "error": "Debug failed",

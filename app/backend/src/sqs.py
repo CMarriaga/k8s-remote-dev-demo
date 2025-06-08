@@ -2,8 +2,11 @@ import boto3
 import asyncio
 import aioboto3
 import os
+from dotenv import load_dotenv
 from botocore.exceptions import BotoCoreError, ClientError
 from src.utils import log_message
+
+load_dotenv()
 
 # Recommended: set AWS_REGION via env vars or use IRSA
 REGION = os.getenv("AWS_REGION", "us-east-1")
@@ -19,7 +22,7 @@ last_messages = {
 
 def send_message_to_sqs(message_body: str):
   if not QUEUE_URL:
-    log_message("send_message_to_sqs", Exception("SQS_QUEUE_URL not set"))
+    log_message(ctx="send_message_to_sqs", exc=Exception("SQS_QUEUE_URL not set"))
     return
   try:
     response = sqs.send_message(
@@ -28,7 +31,7 @@ def send_message_to_sqs(message_body: str):
     )
     return response
   except (BotoCoreError, ClientError) as e:
-    log_message("send_message_to_sqs", e)
+    log_message(ctx="send_message_to_sqs", exc=e)
 
 def update_last_messages(message):
   if len(last_messages["messages"]) < last_messages["limit"]:
@@ -49,7 +52,7 @@ async def poll_sqs_messages():
         )
         messages = response.get("Messages", [])
         for msg in messages:
-          log_message(f'[sqs_received]: {msg["Body"]}')
+          log_message(ctx="poll_sqs_messages", msg=f'[sqs_received]: {msg["Body"]}')
           update_last_messages(msg)
           # Delete after processing
           await sqs.delete_message(
@@ -57,5 +60,5 @@ async def poll_sqs_messages():
             ReceiptHandle=msg["ReceiptHandle"]
           )
       except Exception as e:
-        log_message("sqs_polling_error", e)
+        log_message(ctx="sqs_polling_error", exc=e)
       await asyncio.sleep(1)

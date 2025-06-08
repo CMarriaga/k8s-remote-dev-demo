@@ -43,8 +43,6 @@ async function fetchUsers() {
 async function sendSQS() {
   try {
     const res = await fetch(`${API_BASE}/send-sqs`, { method: "POST" });
-    const json = await res.json();
-    alert(json.data?.message || "Message sent!");
   } catch (err) {
     alert("Failed to send to SQS");
     console.error(err);
