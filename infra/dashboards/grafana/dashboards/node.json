@@ -1,0 +1,294 @@
+{
+  "title": "Node Resource Dashboard",
+  "uid": "node-dashboard-grid",
+  "templating": {
+    "list": [
+      {
+        "name": "instance",
+        "label": "Instance",
+        "type": "query",
+        "datasource": "${prometheus_ds}",
+        "refresh": 1,
+        "query": "label_values(node_cpu_seconds_total, instance)",
+        "includeAll": true,
+        "multi": true,
+        "sort": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "CPU Usage (%)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus_ds}"
+      },
+      "targets": [
+        {
+          "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\", instance=~\"$instance\"}[5m])) * 100)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory Usage (%)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus_ds}"
+      },
+      "targets": [
+        {
+          "expr": "(sum by(instance) (node_memory_MemTotal_bytes{instance=~\"$instance\"} - node_memory_MemAvailable_bytes{instance=~\"$instance\"}) / sum by(instance) (node_memory_MemTotal_bytes{instance=~\"$instance\"})) * 100",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk Read (Bytes/s)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus_ds}"
+      },
+      "targets": [
+        {
+          "expr": "sum by(instance, device) (rate(node_network_transmit_bytes_total{instance=~\"$instance\"}[5m]))",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk Write (Bytes/s)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus_ds}"
+      },
+      "targets": [
+        {
+          "expr": "sum by(instance, device) (rate(node_disk_written_bytes_total{instance=~\"$instance\"}[5m]))",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 4,
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Network Receive (Bytes/s)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus_ds}"
+      },
+      "targets": [
+        {
+          "expr": "sum by(instance, device) (rate(node_network_receive_bytes_total{instance=~\"$instance\"}[5m]))",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 5,
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Network Transmit (Bytes/s)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus_ds}"
+      },
+      "targets": [
+        {
+          "expr": "sum by(instance, device) (rate(node_network_transmit_bytes_total{instance=~\"$instance\"}[5m]))",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 6,
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    }
+  ],
+  "schemaVersion": 37,
+  "version": 1,
+  "refresh": "10s"
+}

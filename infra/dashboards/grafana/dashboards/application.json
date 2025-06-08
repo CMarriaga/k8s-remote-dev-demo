@@ -1,0 +1,317 @@
+{
+  "title": "Application Resource Dashboard",
+  "uid": "app-dashboard-grid",
+  "refresh": "10s",
+  "schemaVersion": 37,
+  "templating": {
+    "list": [
+      {
+        "type": "query",
+        "name": "namespace",
+        "label": "Namespace",
+        "datasource": "${prometheus_ds}",
+        "query": "label_values(kube_pod_info, namespace)",
+        "refresh": 1,
+        "includeAll": true,
+        "multi": true,
+        "sort": 1
+      },
+      {
+        "type": "query",
+        "name": "app",
+        "label": "App",
+        "datasource": "${prometheus_ds}",
+        "query": "label_values(kube_pod_labels{namespace=~\"$namespace\"}, label_app)",
+        "refresh": 1,
+        "includeAll": true,
+        "multi": true,
+        "sort": 1
+      },
+      {
+        "type": "query",
+        "name": "pod",
+        "label": "Pod",
+        "datasource": "${prometheus_ds}",
+        "query": "label_values(kube_pod_info{namespace=~\"$namespace\", pod=~\".*\", label_app=~\"$app\"}, pod)",
+        "refresh": 1,
+        "includeAll": true,
+        "multi": true,
+        "sort": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "CPU Usage (%)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus_ds}"
+      },
+      "targets": [
+        {
+          "expr": "sum by(pod) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\", pod=~\"$pod\", container!=\"\"}[2m]))/sum by(pod) (kube_pod_container_resource_limits{namespace=~\"$namespace\", pod=~\"$pod\", container!=\"\" , resource=\"cpu\", unit=\"core\"})* 100",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "tooltip": {
+        "mode": "single"
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory Usage (%)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus_ds}"
+      },
+      "targets": [
+        {
+          "expr": "sum by(pod) (container_memory_usage_bytes{namespace=~\"$namespace\", pod=~\"$pod\", container!=\"\"})/sum by(pod) (kube_pod_container_resource_limits{namespace=~\"$namespace\", pod=~\"$pod\", container!=\"\" , resource=\"memory\", unit=\"byte\"})* 100",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "tooltip": {
+        "mode": "single"
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Pod Restarts",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus_ds}"
+      },
+      "targets": [
+        {
+          "expr": "sum by(pod) (kube_pod_container_status_restarts_total{namespace=~\"$namespace\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Latency (p99)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus_ds}"
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(istio_request_duration_seconds_bucket{reporter=\"destination\", destination_workload_namespace=~\"$namespace\"}[1m])) by (le, destination_workload))",
+          "legendFormat": "{{destination_workload}}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      },
+      "tooltip": {
+        "mode": "single"
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Network Receive (Bytes/s)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus_ds}"
+      },
+      "targets": [
+        {
+          "expr": "sum by(pod) (rate(container_network_receive_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\"}[2m]))",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps"
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk Reads (Bytes/s)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus_ds}"
+      },
+      "targets": [
+        {
+          "expr": "sum by(pod) (rate(container_fs_reads_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\"}[2m]))",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 14
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps"
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk Writes (Bytes/s)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${prometheus_ds}"
+      },
+      "targets": [
+        {
+          "expr": "sum by(pod) (rate(container_fs_writes_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\"}[2m]))",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps"
+        }
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        }
+      }
+    }
+  ]
+}

@@ -5,7 +5,16 @@ resource "helm_release" "grafana" {
   chart      = "grafana"
   version    = "7.3.10"
 
-  create_namespace = false
+  set {
+    name  = "adminUser"
+    value = var.grafana_admin_user
+  }
+  set {
+    name  = "adminPassword"
+    value = var.grafana_admin_password
+  }
+
+  create_namespace = true
 
   values = [file("${path.module}/values.yaml")]
 }

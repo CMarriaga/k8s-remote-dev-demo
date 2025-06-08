@@ -120,6 +120,8 @@ module "operator" {
   install_ingress_gateway   = var.install_ingress_gateway
   node_security_group_id    = module.eks.node_security_group_id
   cluster_security_group_id = module.eks.cluster_security_group_id
+  grafana_admin_user        = var.grafana_admin_user
+  grafana_admin_password    = var.grafana_admin_password
 
   depends_on = [module.eks]
 }

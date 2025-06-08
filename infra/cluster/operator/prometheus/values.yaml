@@ -6,4 +6,6 @@ server:
 alertmanager:
   persistence:
     enabled: false
+nodeExporter:
+  enabled: true
   

@@ -1,7 +1,10 @@
-adminPassword: admin
-
 service:
   type: ClusterIP
+  port: 3000
+
+sidecar:
+  dashboards:
+    enabled: true
 
 persistence:
   enabled: false

@@ -21,3 +21,13 @@ variable "cluster_security_group_id" {
   type     = string
   nullable = false
 }
+
+variable "grafana_admin_user" {
+  type    = string
+  default = "admin"
+}
+
+variable "grafana_admin_password" {
+  type    = string
+  default = "admin"
+}

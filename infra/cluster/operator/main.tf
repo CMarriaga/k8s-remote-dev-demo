@@ -23,13 +23,7 @@ module "prometheus" {
 module "grafana" {
   source = "./grafana"
 
-  depends_on = [module.metrics-server]
-}
-
-module "kiali" {
-  source = "./kiali"
-
-  depends_on = [module.istio]
+  depends_on = [module.prometheus]
 }
 
 # module "loki" {
@@ -40,16 +34,22 @@ module "kiali" {
 #   depends_on = [module.grafana]
 # }
 
-module "promtail" {
-  source = "./promtail"
+module "jaeger" {
+  source = "./jaeger"
 
   namespace = "observability"
 
   depends_on = [module.grafana]
 }
 
-module "jaeger" {
-  source = "./jaeger"
+module "kiali" {
+  source = "./kiali"
+
+  depends_on = [module.jaeger]
+}
+
+module "promtail" {
+  source = "./promtail"
 
   namespace = "observability"
 

@@ -12,3 +12,12 @@ data "aws_iam_openid_connect_provider" "this" {
   url        = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
   depends_on = [module.eks]
 }
+
+data "kubernetes_service" "grafana" {
+  metadata {
+    name      = "grafana"
+    namespace = "monitoring"
+  }
+
+  depends_on = [module.operator]
+}
