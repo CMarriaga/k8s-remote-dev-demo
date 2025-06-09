@@ -42,10 +42,71 @@ variable "private_subnets" {
   nullable    = false
 }
 
+variable "rds_db_name" {
+  type        = string
+  description = "Name of the database when created"
+  default     = "demo"
+  nullable    = false
+}
+
+variable "rds_username" {
+  type        = string
+  description = "Username used to access the database"
+  default     = "demo"
+  nullable    = false
+}
+
+variable "rds_password" {
+  type        = string
+  description = "Password user to access the database"
+  default     = "demo-local-remote"
+  nullable    = false
+}
+
+variable "rds_port" {
+  type        = number
+  description = "Port where the database will be running"
+  default     = 5432
+  nullable    = false
+}
+
+variable "rds_managed_password" {
+  type        = bool
+  description = "Define if the password should be manages via secrets manager"
+  default     = false
+  nullable    = false
+}
+
 variable "app_namespace" {
   type        = string
   description = "Namespace where the main apps will be deployed"
   nullable    = false
+}
+
+variable "app_metrics_exposed" {
+  type     = bool
+  nullable = false
+}
+
+variable "app_metrics_port" {
+  type     = number
+  default  = 8000
+  nullable = false
+}
+
+variable "containers" {
+  type = object({
+    backend = object({
+      image          = string
+      version        = string
+      container_port = number
+    }),
+    frontend = object({
+      image          = string
+      version        = string
+      container_port = number
+    })
+  })
 }
 
 variable "app_service_account_name" {

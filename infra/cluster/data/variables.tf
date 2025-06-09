@@ -52,3 +52,46 @@ variable "custom_tags" {
   default     = {}
   nullable    = false
 }
+
+variable "rds_db_name" {
+  type        = string
+  description = "Name of the database when created"
+  default     = "demo"
+  nullable    = false
+}
+
+variable "rds_username" {
+  type        = string
+  description = "Username used to access the database"
+  default     = "demo"
+  nullable    = false
+}
+
+variable "rds_password" {
+  type        = string
+  description = "Password used to access the database"
+  default     = "demo-local-remote"
+  sensitive   = true
+  nullable    = false
+}
+
+variable "rds_password_version" {
+  type        = number
+  description = "Password version used to replace old passwords"
+  default     = 1
+  nullable    = false
+}
+
+variable "rds_port" {
+  type        = number
+  description = "Port where the database will be running"
+  default     = 5432
+  nullable    = false
+}
+
+variable "rds_managed_password" {
+  type        = bool
+  description = "Define if the password should be manages via secrets manager"
+  default     = false
+  nullable    = false
+}

@@ -59,10 +59,12 @@ module "eks" {
 
   eks_managed_node_groups = {
     default = {
-      desired_capacity = 3
-      min_capacity     = 3
-      max_capacity     = 6
-      instance_types   = ["t3.medium"]
+      desired_capacity = 1
+      min_capacity     = 1
+      max_capacity     = 2
+      instance_types   = ["m5a.xlarge"]
+      # Apply when using cloud-guru sandbox
+      # instance_types   = ["t3.medium"]
       update_config = {
         max_unavailable_percentage = 50
       }
@@ -124,4 +126,18 @@ module "operator" {
   grafana_admin_password    = var.grafana_admin_password
 
   depends_on = [module.eks]
+}
+
+module "application" {
+  source = "./application"
+
+  common_name                  = var.common_name
+  app_namespace                = var.app_namespace
+  app_service_account_name     = var.app_service_account_name
+  app_service_account_role_arn = module.irsa_role.iam_role_arn
+  containers                   = var.containers
+  app_sqs_url                  = module.data.sqs_queue_url
+  app_auth_db_url              = local.app_auth_db_url
+
+  depends_on = [module.operator]
 }
