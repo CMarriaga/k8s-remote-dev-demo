@@ -24,6 +24,7 @@ services:
   #     DB_URL: postgresql://demo:demo@db:5432/demo
   #     VERSION: docker-compose
   #     SQS_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/730335456202/k8s-local-remote-demo-queue
+  #     DEBUG_APP_MODE: true
   #   ports:
   #     - "8000:8000"
   #   depends_on:

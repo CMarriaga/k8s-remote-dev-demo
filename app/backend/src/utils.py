@@ -17,8 +17,10 @@ TRACING_HEADERS = [
     "x-ot-span-context",
 ]
 """
-  
-def extract_trace_id(request: Request) -> str:
+
+def extract_trace_id(request: Request, showHeaders: bool) -> str:
+    if showHeaders: 
+      print(request.headers)
     return request.headers.get("x-b3-traceid", None)
 
 class JsonFormatter(logging.Formatter):

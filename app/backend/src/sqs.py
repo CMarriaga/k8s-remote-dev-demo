@@ -12,6 +12,7 @@ load_dotenv()
 # Recommended: set AWS_REGION via env vars or use IRSA
 REGION = os.getenv("AWS_REGION", "us-east-1")
 QUEUE_URL = os.getenv("SQS_QUEUE_URL")
+DEBUG_APP_MODE = os.getenv("DEBUG_APP_MODE")
 
 # Create SQS client (use default credentials chain: env vars, IAM, etc.)
 sqs = boto3.client("sqs", region_name=REGION)
@@ -55,7 +56,8 @@ async def poll_sqs_messages():
         )
         messages = response.get("Messages", [])
         for msg in messages:
-          log_message(ctx=ctx, msg=f'[sqs_received]: {msg["Body"]}')
+          if bool(DEBUG_APP_MODE): 
+            log_message(ctx=ctx, msg=f'[sqs_received]: {msg["Body"]}')
           update_last_messages(msg)
           # Delete after processing
           await sqs.delete_message(

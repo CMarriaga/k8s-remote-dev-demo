@@ -2,7 +2,7 @@ import os
 import asyncio
 import inspect
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request, Response, status
+from fastapi import FastAPI, Request, Response, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
@@ -12,10 +12,15 @@ from src.utils import configure_logging, log_message, extract_trace_id
 
 load_dotenv()
 
+DEBUG_APP_MODE = bool(os.getenv("DEBUG_APP_MODE"))
+LOG_APP_PROBES = bool(os.getenv("LOG_APP_PROBES"))
 POD_NAME = os.getenv("POD_NAME")
 VERSION = os.getenv("VERSION")
 DB_URL = os.getenv("DB_URL") #"postgresql://demo_user:demo_pass@db/demo"
 db_pool = None
+
+print(LOG_APP_PROBES)
+print(DEBUG_APP_MODE)
 
 configure_logging() 
 
@@ -44,8 +49,9 @@ app.add_middleware(
 @app.get("/healthz")
 def health(request: Request):
   ctx = inspect.currentframe().f_code.co_name
-  trace_id = extract_trace_id(request)
-  log_message(ctx=ctx, msg="ok", trace_id=trace_id)
+  trace_id = extract_trace_id(request, DEBUG_APP_MODE and LOG_APP_PROBES)
+  if bool(LOG_APP_PROBES): 
+    log_message(ctx=ctx, msg="ok", trace_id=trace_id)
   return {
     "success": True,
     "data": {
@@ -56,10 +62,11 @@ def health(request: Request):
 @app.get("/readyz")
 async def ready(request: Request, response: Response):
   ctx = inspect.currentframe().f_code.co_name
-  trace_id = extract_trace_id(request)
+  trace_id = extract_trace_id(request, DEBUG_APP_MODE and LOG_APP_PROBES)
   try:
     await check_db_ready(db_pool)
-    log_message(ctx=ctx, msg="ok", trace_id=trace_id)
+    if bool(LOG_APP_PROBES): 
+      log_message(ctx=ctx, msg="ok", trace_id=trace_id)
     return {
       "success": True,
       "data": {
@@ -77,7 +84,7 @@ async def ready(request: Request, response: Response):
 @app.get("/")
 async def running(request: Request, response: Response):
   ctx = inspect.currentframe().f_code.co_name
-  trace_id = extract_trace_id(request)
+  trace_id = extract_trace_id(request, DEBUG_APP_MODE)
   log_message(ctx=ctx, msg="ok", trace_id=trace_id)
   return {
     "success": True,
@@ -89,7 +96,7 @@ async def running(request: Request, response: Response):
 @app.get("/title")
 async def get_title(request: Request, response: Response):
   ctx = inspect.currentframe().f_code.co_name
-  trace_id = extract_trace_id(request)
+  trace_id = extract_trace_id(request, DEBUG_APP_MODE)
   log_message(ctx=ctx, msg="ok", trace_id=trace_id)
   return {
     "success": True,
@@ -101,7 +108,7 @@ async def get_title(request: Request, response: Response):
 @app.get("/users")
 async def list_users(request: Request, response: Response):
   ctx = inspect.currentframe().f_code.co_name
-  trace_id = extract_trace_id(request)
+  trace_id = extract_trace_id(request, DEBUG_APP_MODE)
   try:
     users = await fetch_all_users(db_pool)
     log_message(ctx=ctx, msg="ok", trace_id=trace_id)
@@ -120,7 +127,7 @@ async def list_users(request: Request, response: Response):
 @app.post("/send-sqs")
 async def send_sqs(request: Request, response: Response):
   ctx = inspect.currentframe().f_code.co_name
-  trace_id = extract_trace_id(request)
+  trace_id = extract_trace_id(request, DEBUG_APP_MODE)
   try:
     send_message_to_sqs(f"[trace_id={trace_id}]: This is a test message from backend")
     log_message(ctx=ctx, msg="ok", trace_id=trace_id)
@@ -141,7 +148,7 @@ async def send_sqs(request: Request, response: Response):
 @app.get("/debug")
 async def debug_endpoint(request: Request, response: Response):
   ctx = inspect.currentframe().f_code.co_name
-  trace_id = extract_trace_id(request)
+  trace_id = extract_trace_id(request, DEBUG_APP_MODE)
   try:
     log_message(ctx=ctx, msg="ok", trace_id=trace_id)
     return {
@@ -157,3 +164,21 @@ async def debug_endpoint(request: Request, response: Response):
       "error": "Debug failed",
       "success": False
     }
+
+# Catch-all route for non-existent paths (wildcard route)
+@app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def catch_all(request: Request, response: Response, full_path: str):
+  # Capture the 404 error, log it, and respond to the user
+  trace_id = extract_trace_id(request, DEBUG_APP_MODE)
+  log_message(
+    ctx="catch_all",
+    msg=f"404 Not Found: {request.method} /{full_path}",
+    trace_id=trace_id
+  )
+  response.status_code=status.HTTP_404_NOT_FOUND
+  return {
+    "success": False,
+    "data": {
+    "message": "Resource not found"
+    }
+  }
