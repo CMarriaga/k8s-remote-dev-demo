@@ -18,22 +18,17 @@ for DIR in "$CLUSTER_DIR" "$DASHBOARDS_DIR"; do
   fi
 done
 
+# TODO: Validate that if destroy fails but dashboard resources have already been remove
+#       not to try again some steps
 echo "---------------------------------------------------------"
-echo "[1/5] Applying Terraform in '$CLUSTER_DIR'..."
 cd "$SCRIPT_DIR/$CLUSTER_DIR"
-terraform init
-terraform apply
-#terraform apply -auto-approve
-
 CLUSTER_NAME=$(terraform output -raw cluster_name)
 REGION=$(terraform output -raw region)
-
-echo "---------------------------------------------------------"
-echo "[2/5] Updating kubeconfig for cluster: $CLUSTER_NAME (region: $REGION)"
+echo "[1/5] Updating kubeconfig for cluster: $CLUSTER_NAME (region: $REGION)"
 aws eks update-kubeconfig --region "$REGION" --name "$CLUSTER_NAME"
 
 echo "---------------------------------------------------------"
-echo "[3/5] Waiting for Grafana to become ready..."
+echo "[2/5] Waiting for Grafana to become ready..."
 kubectl rollout status deployment/"$GRAFANA_SERVICE_NAME" -n "$GRAFANA_NAMESPACE" --timeout=120s
 
 echo "Port-forwarding Grafana on localhost:$LOCAL_PORT"
@@ -62,14 +57,22 @@ wait_for_grafana_ready() {
 wait_for_grafana_ready
 
 echo "---------------------------------------------------------"
-echo "[4/5] Applying Terraform in '$DASHBOARDS_DIR'..."
+echo "[3/5] Destroying Terraform in '$DASHBOARDS_DIR'..."
 cd "$SCRIPT_DIR/$DASHBOARDS_DIR"
 terraform init
-terraform apply
-#terraform apply -auto-approve
+terraform destroy
+#terraform destroy -auto-approve
 
 echo "---------------------------------------------------------"
-echo "[5/5] Cleaning up port-forward (PID $PORT_FWD_PID)..."
+echo "[4/5] Cleaning up port-forward (PID $PORT_FWD_PID)..."
 kill "$PORT_FWD_PID" >/dev/null 2>&1 || true
 
-echo "Deployment completed successfully!"
+
+echo "---------------------------------------------------------"
+echo "[5/5] Destroying Terraform in '$CLUSTER_DIR'..."
+cd "$SCRIPT_DIR/$CLUSTER_DIR"
+terraform init
+terraform destroy
+#terraform destroy -auto-approve
+
+echo "Destroy completed successfully!"
