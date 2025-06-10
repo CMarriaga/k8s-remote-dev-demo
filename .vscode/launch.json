@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: FastAPI Local",
+      "type": "debugpy",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/app/backend",
+      "envFile": "${workspaceFolder}/app/backend/src/.env" ,
+      "module": "uvicorn",
+      "args": [
+        "src.main:app",
+        "--host", 
+        "0.0.0.0",
+        "--port",
+        "8000"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      //"preLaunchTask": "Start Telepresence"
+    }
+  ]
+}
