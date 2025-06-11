@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "mirrord-python-debug",
+      "type": "shell",
+      "command": "mirrord",
+      "args": [
+        "exec",
+        "-f",
+        "${workspaceFolder}/app/backend/.mirrord/mirrord.json",
+        "--",
+        "${workspaceFolder}/app/backend/.venv/bin/python3",
+        "-m",
+        "debugpy",
+        "--listen",
+        "0.0.0.0:5690",
+        "--wait-for-client",
+        "-m",
+        "uvicorn",
+        "src.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000"
+      ],
+      "isBackground": true,
+      "options": {
+        "cwd": "${workspaceFolder}/app/backend"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

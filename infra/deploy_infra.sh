@@ -21,7 +21,7 @@ for DIR in "$CLUSTER_DIR" "$DASHBOARDS_DIR" "$APPLICATION_DIR"; do
 done
 
 echo -e "---------------------------------------------------------"
-echo "[1/7] Applying Terraform in '$CLUSTER_DIR'..."
+echo "[1/8] Applying Terraform in '$CLUSTER_DIR'..."
 cd "$SCRIPT_DIR/$CLUSTER_DIR"
 terraform init
 terraform apply -auto-approve
@@ -37,7 +37,7 @@ NODE_SECURITY_GROUP_ID=$(terraform output -raw node_security_group_id)
 CLUSTER_SECURITY_GROUP_ID=$(terraform output -raw cluster_security_group_id)
 
 echo -e "---------------------------------------------------------"
-echo "[2/7] Applying Terraform in '$OPERATOR_DIR'..."
+echo "[2/8] Applying Terraform in '$OPERATOR_DIR'..."
 cd "$SCRIPT_DIR/$OPERATOR_DIR"
 export TF_VAR_common_name="$COMMON_NAME"
 export TF_VAR_node_security_group_id="$NODE_SECURITY_GROUP_ID"
@@ -46,11 +46,11 @@ terraform init
 terraform apply -auto-approve
 
 echo -e "\n---------------------------------------------------------"
-echo "[3/7] Updating kubeconfig for cluster: $CLUSTER_NAME (region: $REGION)"
+echo "[3/8] Updating kubeconfig for cluster: $CLUSTER_NAME (region: $REGION)"
 aws eks update-kubeconfig --region "$REGION" --name "$CLUSTER_NAME"
 
 echo -e "\n---------------------------------------------------------"
-echo "[4/7] Waiting for Grafana to become ready..."
+echo "[4/8] Waiting for Grafana to become ready..."
 kubectl rollout status deployment/"$GRAFANA_SERVICE_NAME" -n "$GRAFANA_NAMESPACE" --timeout=120s
 
 echo "Port-forwarding Grafana on localhost:$LOCAL_PORT"
@@ -79,17 +79,17 @@ wait_for_grafana_ready() {
 wait_for_grafana_ready
 
 echo -e "\n---------------------------------------------------------"
-echo "[5/7] Applying Terraform in '$DASHBOARDS_DIR'..."
+echo "[5/8] Applying Terraform in '$DASHBOARDS_DIR'..."
 cd "$SCRIPT_DIR/$DASHBOARDS_DIR"
 terraform init
 terraform apply -auto-approve
 
 echo -e "\n---------------------------------------------------------"
-echo "[6/7] Cleaning up port-forward (PID $PORT_FWD_PID)..."
+echo "[6/8] Cleaning up port-forward (PID $PORT_FWD_PID)..."
 kill "$PORT_FWD_PID" >/dev/null 2>&1 || true
 
 echo -e "\n---------------------------------------------------------"
-echo "[7/7] Applying Terraform in '$APPLICATION_DIR'..."
+echo "[7/8] Applying Terraform in '$APPLICATION_DIR'..."
 cd "$SCRIPT_DIR/$APPLICATION_DIR"
 terraform init
 export TF_VAR_rds_db_url="$RDS_DB_URL"
@@ -97,5 +97,10 @@ export TF_VAR_sqs_queue_url="$SQS_QUEUE_URL"
 export TF_VAR_app_auth_db_url="$APP_AUTH_DB_URL"
 export TF_VAR_app_service_account_role_arn="$APP_SERVICE_ACCOUNT_ROLE_ARN"
 terraform apply -auto-approve
+
+echo -e "\n---------------------------------------------------------"
+echo "[8/8] Populating RDS database with initial data..."
+APP_INGRESS_URL=$(terraform output -raw app_ingress_url)
+curl -v -X POST "$APP_INGRESS_URL/api/init-db"
 
 echo -e "\nDeployment completed successfully!"

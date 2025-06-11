@@ -1,6 +1,7 @@
 import os
 import asyncio
 import inspect
+import aiofiles
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, Response, status, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,6 +19,14 @@ POD_NAME = os.getenv("POD_NAME")
 VERSION = os.getenv("VERSION")
 DB_URL = os.getenv("DB_URL") #"postgresql://demo_user:demo_pass@db/demo"
 db_pool = None
+
+if DEBUG_APP_MODE:
+  AWS_ROLE_ARN = os.getenv("AWS_ROLE_ARN")
+  AWS_ROLE_SESSION_NAME = os.getenv("AWS_ROLE_SESSION_NAME")
+  AWS_WEB_IDENTITY_TOKEN_FILE = os.getenv("AWS_WEB_IDENTITY_TOKEN_FILE")
+  print(f"AWS_ROLE_ARN: {AWS_ROLE_ARN}")
+  print(f"AWS_ROLE_SESSION_NAME: {AWS_ROLE_SESSION_NAME}")
+  print(f"AWS_WEB_IDENTITY_TOKEN_FILE: {AWS_WEB_IDENTITY_TOKEN_FILE}")
 
 print(LOG_APP_PROBES)
 print(DEBUG_APP_MODE)
@@ -92,7 +101,34 @@ async def running(request: Request, response: Response):
       "message": "Running"
     }
   }
-    
+  
+@app.post("/init-db")
+async def init_db_endpoint(request: Request, response: Response):
+  ctx = inspect.currentframe().f_code.co_name
+  trace_id = extract_trace_id(request, DEBUG_APP_MODE)
+  sql_file_path = os.path.join(os.path.dirname(__file__), "init.sql")
+  try:
+    # Read the SQL file asynchronously
+    async with aiofiles.open(sql_file_path, mode="r") as f:
+      sql_content = await f.read()
+    # Execute the SQL statements
+    async with db_pool.acquire() as conn:
+      await conn.execute(sql_content)
+    log_message(ctx=ctx, msg="Database initialized from init.sql", trace_id=trace_id)
+    return {
+      "success": True,
+      "data": {
+        "message": "Database initialized from init.sql"
+      }
+    }
+  except Exception as e:
+    log_message(ctx=ctx, exc=e, trace_id=trace_id)
+    response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    return {
+      "success": False,
+      "error": "Failed to initialize database"
+    }
+
 @app.get("/title")
 async def get_title(request: Request, response: Response):
   ctx = inspect.currentframe().f_code.co_name
