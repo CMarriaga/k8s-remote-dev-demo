@@ -18,6 +18,8 @@ resource "grafana_dashboard" "application" {
   })
 }
 
-# resource "grafana_dashboard" "application_dashboard" {
-#   config_json = file("${path.module}/dashboards/application.json")
-# }
+resource "grafana_dashboard" "telepresence" {
+  config_json = templatefile("${path.module}/dashboards/telepresence.json", {
+    prometheus_ds = "Prometheus"
+  })
+}

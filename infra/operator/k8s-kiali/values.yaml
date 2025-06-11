@@ -1,0 +1,20 @@
+cr:
+  create: true
+  namespace: istio-system
+  spec:
+    auth:
+      strategy: anonymous
+    deployment:
+      accessible_namespaces: ["**"]
+    external_services:
+      grafana:
+        in_cluster_url: http://grafana.monitoring.svc.cluster.local:3000
+        url: http://grafana.monitoring.svc.cluster.local:3000
+      prometheus:
+        url: http://prometheus-server.monitoring.svc.cluster.local
+      tracing:
+        enabled: true
+        use_grpc: true
+        provider: jaeger
+        in_cluster_url: http://jaeger-query.istio-system.svc.cluster.local:16685
+        url: http://jaeger-query.istio-system.svc.cluster.local:16685

@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+  namespace: istio-system
+  labels:
+    app: jaeger
+spec:
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+        sidecar.istio.io/inject: "false"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "14269"
+    spec:
+      containers:
+        - name: jaeger
+          image: "docker.io/jaegertracing/all-in-one:1.48.0"
+          env:
+            - name: BADGER_EPHEMERAL
+              value: "false"
+            - name: SPAN_STORAGE_TYPE
+              value: "badger"
+            - name: BADGER_DIRECTORY_VALUE
+              value: "/badger/data"
+            - name: BADGER_DIRECTORY_KEY
+              value: "/badger/key"
+            - name: COLLECTOR_ZIPKIN_HOST_PORT
+              value: ":9411"
+            - name: MEMORY_MAX_TRACES
+              value: "50000"
+            - name: QUERY_BASE_PATH
+              value: /jaeger
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 14269
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 14269
+          volumeMounts:
+            - name: data
+              mountPath: /badger
+          resources:
+            requests:
+              cpu: 10m
+      volumes:
+        - name: data
+          emptyDir: {}
+
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: jaeger
+#   namespace: istio-system
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: jaeger
+#   template:
+#     metadata:
+#       labels:
+#         app: jaeger
+#     spec:
+#       containers:
+#       - name: jaeger
+#         image: jaegertracing/all-in-one:1.48
+#         ports:
+#         - containerPort: 9411  # Zipkin
+#         - containerPort: 16686 # UI

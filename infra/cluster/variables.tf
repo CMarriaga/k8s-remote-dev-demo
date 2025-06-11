@@ -83,32 +83,6 @@ variable "app_namespace" {
   nullable    = false
 }
 
-variable "app_metrics_exposed" {
-  type     = bool
-  nullable = false
-}
-
-variable "app_metrics_port" {
-  type     = number
-  default  = 8000
-  nullable = false
-}
-
-variable "containers" {
-  type = object({
-    backend = object({
-      image          = string
-      version        = string
-      container_port = number
-    }),
-    frontend = object({
-      image          = string
-      version        = string
-      container_port = number
-    })
-  })
-}
-
 variable "app_service_account_name" {
   type        = string
   description = "Name of the service account that will be used by the app"

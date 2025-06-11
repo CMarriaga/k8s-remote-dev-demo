@@ -17,8 +17,16 @@ resource "helm_release" "istiod" {
 
   values = [
     yamlencode({
-      global = {
-        istioNamespace = var.istio_namespace
+      meshConfig = {
+        enableTracing = true
+        defaultConfig = {
+          tracing = {
+            sampling = 100.0
+            zipkin = {
+              address = format("jaeger-collector.%s.svc:9411", var.istio_namespace)
+            }
+          }
+        }
       }
     })
   ]
@@ -32,6 +40,7 @@ resource "helm_release" "istiod" {
     name  = "pilot.resources.requests.cpu"
     value = "100m"
   }
+
   set {
     name  = "pilot.resources.requests.memory"
     value = "128Mi"
@@ -48,22 +57,29 @@ resource "helm_release" "istio_ingress" {
   repository = "https://istio-release.storage.googleapis.com/charts"
   version    = var.istio_version
 
-  set {
-    name  = "gateways.istio-ingressgateway.resources.requests.cpu"
-    value = "100m"
-  }
-  set {
-    name  = "gateways.istio-ingressgateway.resources.requests.memory"
-    value = "128Mi"
-  }
-  set {
-    name  = "gateways.istio-ingressgateway.resources.limits.cpu"
-    value = "250m"
-  }
-  set {
-    name  = "gateways.istio-ingressgateway.resources.limits.memory"
-    value = "256Mi"
-  }
+  values = [
+    yamlencode({
+      gateways = {
+        istio-ingressgateway = {
+          proxyMetadata = {
+            ENABLE_TRACING   = "true"
+            TRACING_SAMPLING = "100"
+            ZIPKIN_ADDRESS   = "jaeger-collector.${var.istio_namespace}.svc:9411"
+          }
+          resources = {
+            requests = {
+              cpu    = "100m"
+              memory = "128Mi"
+            }
+            limits = {
+              cpu    = "250m"
+              memory = "256Mi"
+            }
+          }
+        }
+      }
+    })
+  ]
 
   depends_on = [helm_release.istiod]
 }

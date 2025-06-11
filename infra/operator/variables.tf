@@ -1,3 +1,8 @@
+variable "common_name" {
+  type     = string
+  nullable = false
+}
+
 variable "istio_namespace" {
   type    = string
   default = "istio-system"

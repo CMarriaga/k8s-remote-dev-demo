@@ -1,9 +1,9 @@
 module "metrics-server" {
-  source = "./metrics-server"
+  source = "./k8s-metrics-server"
 }
 
 module "istio" {
-  source = "./istio"
+  source = "./k8s-istio"
 
   istio_namespace           = var.istio_namespace
   istio_version             = var.istio_version
@@ -15,19 +15,19 @@ module "istio" {
 }
 
 module "prometheus" {
-  source = "./prometheus"
+  source = "./k8s-prometheus"
 
   depends_on = [module.metrics-server]
 }
 
 module "grafana" {
-  source = "./grafana"
+  source = "./k8s-grafana"
 
   depends_on = [module.prometheus]
 }
 
 # module "loki" {
-#   source = "./loki"
+#   source = "./k8s-loki"
 
 #   namespace = "observability"
 
@@ -35,23 +35,32 @@ module "grafana" {
 # }
 
 module "jaeger" {
-  source = "./jaeger"
+  source = "./k8s-jaeger"
 
-  namespace = "observability"
+  namespace = var.istio_namespace
 
   depends_on = [module.grafana]
 }
 
 module "kiali" {
-  source = "./kiali"
+  source = "./k8s-kiali"
 
-  depends_on = [module.jaeger]
+  # depends_on = [module.jaeger]
+  depends_on = [module.istio]
 }
 
 module "promtail" {
-  source = "./promtail"
+  source = "./k8s-promtail"
 
   namespace = "observability"
 
   depends_on = [module.grafana]
+}
+
+module "telepresence" {
+  source = "./k8s-telepresence"
+
+  namespace = "ambassador"
+
+  depends_on = [module.kiali]
 }

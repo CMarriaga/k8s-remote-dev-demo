@@ -15,6 +15,9 @@ resources:
 
 collector:
   enabled: true
+  service:
+    zipkin:
+      port: 9411
   resources:
     limits:
       cpu: 500m
@@ -44,10 +47,10 @@ agent:
       memory: 64Mi
 
 ingester:
-  enabled: false  # Not needed for memory storage
+  enabled: false
 
 hotrod:
-  enabled: false  # Optional example app, disable to save memory
+  enabled: false
 
 kafka:
   enabled: false
