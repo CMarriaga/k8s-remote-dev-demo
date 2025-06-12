@@ -1,0 +1,5 @@
+client:
+  routing:
+    alsoProxySubnets:
+      - 10.1.4.0/23
+      - 10.1.6.0/23

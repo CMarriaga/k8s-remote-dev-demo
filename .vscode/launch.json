@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Python: Attach (mirrord)",
+      "name": "Python: Attach (mirrord & Telepresence)",
       "type": "debugpy",
       "request": "attach",
       "connect": {

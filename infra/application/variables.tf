@@ -39,6 +39,11 @@ variable "containers" {
       version        = string
       container_port = number
     }),
+    microservice = object({
+      image          = string
+      version        = string
+      container_port = number
+    }),
     frontend = object({
       image          = string
       version        = string

@@ -3,7 +3,7 @@ import asyncio
 import inspect
 import aiofiles
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request, Response, status, HTTPException
+from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
@@ -20,16 +20,16 @@ VERSION = os.getenv("VERSION")
 DB_URL = os.getenv("DB_URL") #"postgresql://demo_user:demo_pass@db/demo"
 db_pool = None
 
+print(f"DB_URL: {DB_URL}")
+print(f"VERSION: {VERSION}")
+
 if DEBUG_APP_MODE:
   AWS_ROLE_ARN = os.getenv("AWS_ROLE_ARN")
-  AWS_ROLE_SESSION_NAME = os.getenv("AWS_ROLE_SESSION_NAME")
   AWS_WEB_IDENTITY_TOKEN_FILE = os.getenv("AWS_WEB_IDENTITY_TOKEN_FILE")
   print(f"AWS_ROLE_ARN: {AWS_ROLE_ARN}")
-  print(f"AWS_ROLE_SESSION_NAME: {AWS_ROLE_SESSION_NAME}")
   print(f"AWS_WEB_IDENTITY_TOKEN_FILE: {AWS_WEB_IDENTITY_TOKEN_FILE}")
-
-print(LOG_APP_PROBES)
-print(DEBUG_APP_MODE)
+  print(LOG_APP_PROBES)
+  print(DEBUG_APP_MODE)
 
 configure_logging() 
 

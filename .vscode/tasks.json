@@ -4,26 +4,22 @@
     {
       "label": "mirrord-python-debug",
       "type": "shell",
-      "command": "mirrord",
+      "command": "bash",
       "args": [
-        "exec",
-        "-f",
-        "${workspaceFolder}/app/backend/.mirrord/mirrord.json",
-        "--",
-        "${workspaceFolder}/app/backend/.venv/bin/python3",
-        "-m",
-        "debugpy",
-        "--listen",
-        "0.0.0.0:5690",
-        "--wait-for-client",
-        "-m",
-        "uvicorn",
-        "src.main:app",
-        "--host",
-        "0.0.0.0",
-        "--port",
-        "8000"
+        "-c",
+        "set -a && source ${workspaceFolder}/app/backend/src/.env && mirrord exec -f ${workspaceFolder}/app/backend/.mirrord/mirrord.json -- ${workspaceFolder}/app/backend/.venv/bin/python3 -m debugpy --listen 0.0.0.0:5690 --wait-for-client -m uvicorn src.main:app --host 0.0.0.0 --port 8000"
       ],
+      "isBackground": true,
+      "options": {
+        "cwd": "${workspaceFolder}/app/backend"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "telepresence-python-backend-debug",
+      "type": "shell",
+      "command": "${workspaceFolder}/app/backend/telepresence.sh",
+      "args": ["k8s-local-remote-demo-backend"],
       "isBackground": true,
       "options": {
         "cwd": "${workspaceFolder}/app/backend"

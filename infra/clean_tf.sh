@@ -60,7 +60,7 @@ echo "[2/4] Removing tfstate in '$DASHBOARDS_DIR'..."
 [ -e  "$DASHBOARD_STATE_FILE" ] && rm "$DASHBOARD_STATE_FILE"
 [ -e  "$DASHBOARD_BACKUP_STATE_FILE" ] && rm "$DASHBOARD_BACKUP_STATE_FILE"
 
-echo "[3/4] Removing tfstate in '$APPLICATION_DIR' and '$OPERATOR_DIR'..."
+echo "[3/4] Removing tfstate in '$APPLICATION_DIR'..."
 [ -e  "$APPLICATION_STATE_FILE" ] && rm "$APPLICATION_STATE_FILE"
 [ -e  "$APPLICATION_BACKUP_STATE_FILE" ] && rm "$APPLICATION_BACKUP_STATE_FILE"
 

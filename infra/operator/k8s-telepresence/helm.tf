@@ -6,4 +6,6 @@ resource "helm_release" "telepresence" {
   namespace  = var.namespace
 
   create_namespace = true
+
+  values = [file("${path.module}/values.yaml")]
 }

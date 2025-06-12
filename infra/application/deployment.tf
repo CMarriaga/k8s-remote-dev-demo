@@ -261,3 +261,98 @@ resource "kubernetes_deployment" "frontend" {
     }
   }
 }
+
+resource "kubernetes_deployment" "microservice" {
+  metadata {
+    name      = local.microservice_app_name
+    namespace = var.app_namespace
+    labels = {
+      app     = local.microservice_app_name
+      version = var.containers.microservice.version
+    }
+  }
+
+  spec {
+    replicas = 1
+    selector {
+      match_labels = {
+        app = local.microservice_app_name
+      }
+    }
+
+    template {
+      metadata {
+        labels = {
+          app     = local.microservice_app_name
+          version = var.containers.microservice.version
+        }
+        annotations = merge(
+          {
+            "sidecar.istio.io/inject" = "true"
+          },
+          var.app_metrics_exposed ? {
+            "prometheus.io/scrape" = "true"
+            # TODO: add this port into the containers variable
+            "prometheus.io/port" = var.app_metrics_port
+          } : {}
+        )
+      }
+
+      spec {
+        termination_grace_period_seconds = 10
+
+        container {
+          name  = local.microservice_app_name
+          image = format("%s:%s", var.containers.microservice.image, var.containers.microservice.version)
+
+          port {
+            container_port = var.containers.microservice.container_port
+          }
+
+          env {
+            name = "POD_NAME"
+            value_from {
+              field_ref {
+                field_path = "metadata.name"
+              }
+            }
+          }
+
+          env {
+            name  = "VERSION"
+            value = var.containers.microservice.version
+          }
+
+          resources {
+            requests = {
+              cpu    = "100m"
+              memory = "128Mi"
+            }
+            limits = {
+              cpu    = "500m"
+              memory = "512Mi"
+            }
+          }
+
+          readiness_probe {
+            http_get {
+              path = "/readyz"
+              port = var.containers.microservice.container_port
+            }
+            initial_delay_seconds = 2
+            period_seconds        = 5
+          }
+
+          liveness_probe {
+            http_get {
+              path = "/healthz"
+              port = var.containers.microservice.container_port
+            }
+            initial_delay_seconds = 5
+            period_seconds        = 10
+          }
+        }
+      }
+    }
+  }
+}
